@@ -1,0 +1,81 @@
+﻿Name;dType;Categorical;Ordered;Categories
+MSSubClass;int64;True;False;
+MSZoning;object;True;False;
+LotFrontage;float64;;;
+LotArea;int64;;;
+Street;object;True;True;["Grvl", "Pave"]
+Alley;object;True;False;
+LotShape;object;True;True;["IR3", "IR2", "IR1", "Reg"]
+LandContour;object;True;False;
+Utilities;object;True;True;["ELO", "NoSeWa", "NoSewr", "AllPub"]
+LotConfig;object;True;False;
+LandSlope;object;True;True;["Sev", "Mod", "Gtl"]
+Neighborhood;object;True;False;
+Condition1;object;True;False;
+Condition2;object;True;False;
+BldgType;object;True;False;
+HouseStyle;object;True;False;
+OverallQual;int64;True;True;[1,2,3,4,5,6,7,8,9,10]
+OverallCond;int64;True;True;[1,2,3,4,5,6,7,8,9,10]
+YearBuilt;int64;;;
+YearRemodAdd;int64;;;
+RoofStyle;object;True;False;
+RoofMatl;object;True;False;
+Exterior1st;object;True;False;
+Exterior2nd;object;True;False;
+MasVnrType;object;True;False;
+MasVnrArea;float64;;;
+ExterQual;object;True;True;["Po", "Fa", "TA", "Gd", "Ex"]
+ExterCond;object;True;True;["Po", "Fa", "TA", "Gd", "Ex"]
+Foundation;object;True;False;
+BsmtQual;object;True;True;["NA", "Po", "Fa", "TA", "Gd", "Ex"]
+BsmtCond;object;True;True;["NA", "Po", "Fa", "TA", "Gd", "Ex"]
+BsmtExposure;object;True;True;["NA", "No", "Mn", "Av", "Gd"]
+BsmtFinType1;object;True;True;["NA", "Unf", "LwQ", "Rec", "BLQ", "ALQ", "GQL"]
+BsmtFinSF1;int64;;;
+BsmtFinType2;object;True;True;["NA", "Unf", "LwQ", "Rec", "BLQ", "ALQ", "GQL"]
+BsmtFinSF2;int64;;;
+BsmtUnfSF;int64;;;
+TotalBsmtSF;int64;;;
+Heating;object;True;False;
+HeatingQC;object;True;True;["Po", "Fa", "TA", "Gd", "Ex"]
+CentralAir;object;True;False;
+Electrical;object;True;False;
+1stFlrSF;int64;;;
+2ndFlrSF;int64;;;
+LowQualFinSF;int64;;;
+GrLivArea;int64;;;
+BsmtFullBath;int64;;;
+BsmtHalfBath;int64;;;
+FullBath;int64;;;
+HalfBath;int64;;;
+BedroomAbvGr;int64;;;
+KitchenAbvGr;int64;;;
+KitchenQual;object;True;True;["Po", "Fa", "TA", "Gd", "Ex"]
+TotRmsAbvGrd;int64;;;
+Functional;object;True;True;["Typ", "Min1", "Min2", "Mod", "Maj1", "Maj2", "Sev", "Sal"]
+Fireplaces;int64;;;
+FireplaceQu;object;True;True;["NA", "Po", "Fa", "TA", "Gd", "Ex"]
+GarageType;object;True;False;
+GarageYrBlt;float64;;;
+GarageFinish;object;True;True;["NA", "Unf", "RFn", "Fin"]
+GarageCars;int64;;;
+GarageArea;int64;;;
+GarageQual;object;True;True;["NA", "Po", "Fa", "TA", "Gd", "Ex"]
+GarageCond;object;True;True;["NA", "Po", "Fa", "TA", "Gd", "Ex"]
+PavedDrive;object;True;True;["N", "P", "Y"]
+WoodDeckSF;int64;;;
+OpenPorchSF;int64;;;
+EnclosedPorch;int64;;;
+3SsnPorch;int64;;;
+ScreenPorch;int64;;;
+PoolArea;int64;;;
+PoolQC;object;True;True;["NA", "Fa", "TA", "Gd", "Ex"]
+Fence;object;True;True;["NA", "MnWw", "GdWo", "MnPrv", "GdPrv"]
+MiscFeature;object;True;False;
+MiscVal;int64;;;
+MoSold;int64;;;
+YrSold;int64;;;
+SaleType;object;True;False;
+SaleCondition;object;True;False;
+SalePrice;int64;;;
