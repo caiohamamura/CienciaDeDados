@@ -69,14 +69,18 @@ msno.matrix(dataFrame, labels=True, color=(0.5,0.5,1), sparkline=False)
 #%%
 # Verificar graficamente valor de venda da casa com e sem piscina
 fig1, ax1 = plt.subplots()
-ax1.set_title('Basic Plot')
-plt.boxplot([dataFrame["SalePrice"][dataFrame.PoolArea>0], dataFrame["SalePrice"][dataFrame.PoolArea==0]], 
-            labels=["Com Piscina", "Sem Piscina"])
+ax1 = fig1.add_subplot(1, 1, 1)
+# ax1.set_facecolor("#1E1E1E")
+bplot = plt.boxplot([dataFrame["SalePrice"][dataFrame.PoolArea>0], 
+            dataFrame["SalePrice"][dataFrame.PoolArea==0]], 
+            labels=["Com Piscina", "Sem Piscina"],
+            patch_artist=True)  # fill with color
+[patch.set_facecolor("#6666FF") for patch in bplot['boxes']]
+plt.show()
 
 #%%
-le = preprocessing.LabelEncoder()
 # Ignora as 23 variáveis nominais/categóricas
-tudo=np.logical_or(np.logical_not(nominalColumns), varDataFrame.Name == "Neighborhood")
+tudo=np.logical_not(nominalColumns)
 
 
 # Cria novo conjunto de dados sem as 23 variáveis nominais/categóricas
@@ -105,7 +109,7 @@ ax = fig.add_subplot(1, 1, 1)
 plt.xlabel("predict")
 plt.ylabel("observed")
 plt.plot(rf.predict(dataFrame2[cols]),dataFrame2[colPredict], 'ro')
-ax.set_facecolor("#1E1E1E")
+# ax.set_facecolor("#1E1E1E")
 plt.show()
 
 #%%
@@ -159,4 +163,16 @@ from sklearn.preprocessing import OneHotEncoder
 coder = OneHotEncoder(handle_unknown="ignore")
 
 #%%
-# Explorando as 
+#Explorando a variavel mais importante (overall quality)
+fig1, ax1 = plt.subplots()
+ax1 = fig1.add_subplot(1, 1, 1)
+# ax1.set_facecolor("#1E1E1E")
+plt.axes().get_yaxis().set_visible(False)
+ax1.get_yaxis().set_visible(True)
+plt.xlabel("Qualidade Geral")
+plt.ylabel("Preço de Venda (US$)")
+ax1.get_xaxis().set_ticks(range(1,11))
+ax1.violinplot(dataFrame.groupby("OverallQual")["SalePrice"].apply(list))
+plt.show()
+
+#%%
