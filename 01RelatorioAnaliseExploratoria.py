@@ -14,50 +14,14 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 from sklearn import preprocessing
 
-# Numpy by Pandas
-np = pd.np
 
-#%%
-# Lê arquivo CSV de Treino
-dataFrame=pd.read_csv('train.csv')
+# Importa dataFrame e variaveis pré processadas
+from AnaliseInicial.TratamentoDados import (
+    np,             #numpy
+    dataFrame,      #dataFrame principal
+    varsDataFrame   #dataFrame das variaveis
+)
 
-# =============================================================================
-# 
-# #Copiar nomes de colunas e tipos para clipboard
-# columnTypes=["%s\t%s" % (c, t) for c,t in zip(dataFrame.columns, dataFrame.dtypes)]
-# clipboard.copy(("\n".join(columnTypes)))
-# 
-# =============================================================================
-
-# Remover coluna Id (nao utiliza na análise)
-dataFrame = dataFrame.drop("Id", 1)
-
-#%%
-# =============================================================================
-# Ajustar colunas QUALITATIVAS: nominais/categóricas ou ordinais
-# =============================================================================
-# Lê arquivo CSV com as variáveis e tipos
-varDataFrame = pd.read_csv("variables.csv", delimiter=";")
-
-# Separa as variáveis nominais/categóricas
-nominalColumns=np.logical_and(varDataFrame.Categorical, np.logical_not(varDataFrame.Ordered))
-
-# Nominais/categóricas
-for col in varDataFrame.Name[nominalColumns]:
-    dataFrame[col] = pd.Categorical(dataFrame[col], ordered=False)
-
-
-# Ordinais
-# Busca as categorias ordinais não-nulas
-ordinalColumns=pd.notnull(varDataFrame.Categories)
-# Transforma as categorias ordinais de formato String para Objeto
-varDataFrame.Categories = varDataFrame.Categories[ordinalColumns].map(eval)
-# Ajusta as categorias ordinais para o tipo de dados "Categoria"
-for col, cats in varDataFrame[ordinalColumns][["Name", "Categories"]].values:
-    dataFrame[col] = pd.Categorical(dataFrame[col], categories=cats, ordered=True)
-# Renomeia as categorias ordinais utilizando sequência de números
-for col, cats in varDataFrame[ordinalColumns][["Name", "Categories"]].values:
-    dataFrame[col] = dataFrame[col].cat.rename_categories(range(dataFrame[col].cat.categories.size))
 
 #%%
 # =============================================================================
@@ -67,9 +31,7 @@ msno.matrix(dataFrame, labels=True, color=(0.5,0.5,1), sparkline=False)
 
 #%%
 # Verificar graficamente valor de venda da casa com e sem piscina
-fig1, ax1 = plt.subplots()
-ax1 = fig1.add_subplot(1, 1, 1)
-# ax1.set_facecolor("#1E1E1E")
+
 bplot = plt.boxplot([dataFrame["SalePrice"][dataFrame.PoolArea>0], 
             dataFrame["SalePrice"][dataFrame.PoolArea==0]], 
             labels=["Com Piscina", "Sem Piscina"],
@@ -79,6 +41,7 @@ plt.show()
 
 #%%
 # Ignora as 23 variáveis nominais/categóricas
+nominalColumns = varsDataFrame.Ordered == False
 tudo=np.logical_not(nominalColumns)
 
 
@@ -150,18 +113,6 @@ plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 plt.show()
 
 #%%
-diff = abs(rf.predict(dataFrame2[cols])-dataFrame2[colPredict])
-dataFrame2[colPredict].iloc[523]
-rf.predict(dataFrame2[cols])[523]
-
-#%%
-diff = diff.sort_values(ascending = False)
-
-#%%
-from sklearn.preprocessing import OneHotEncoder
-coder = OneHotEncoder(handle_unknown="ignore")
-
-#%%
 #Explorando a variavel mais importante (overall quality)
 fig1, ax1 = plt.subplots()
 ax1 = fig1.add_subplot(1, 1, 1)
@@ -177,26 +128,37 @@ plt.show()
 #%%
 # Estatísticas descritivas para variáveis exporta para csv
 from scipy import stats
-numericalCols = varDataFrame.Name[pd.isna(varDataFrame.Categorical)]
+numericalCols = varsDataFrame.Name[pd.isna(varsDataFrame.Categorical)]
 dataNumerical = dataFrame[numericalCols]
-res=dataNumerical.apply(func=[np.mean, np.median, np.max, np.min, np.std], axis=0)
-res2=stats.kurtosis(dataNumerical, axis=0, nan_policy="omit")
-res3=stats.skew(dataNumerical, axis=0, nan_policy="omit")
-res4 = stats.mode(dataFrame[numericalCols], axis=0, nan_policy="omit").mode
-res5 = pd.DataFrame({"kurtosis":res2, "skew":res3, "mode": res4[0]})
+res=dataNumerical.apply(
+    func=[np.mean, np.median, np.max, np.min, np.var], 
+    axis=0)
+res2 = stats.kurtosis(dataNumerical, axis=0, nan_policy="omit")
+res3 = stats.skew(dataNumerical, axis=0, nan_policy="omit")
+res4 = stats.mode(dataNumerical, axis=0, nan_policy="omit").mode
+res5 = pd.DataFrame({
+    "kurtosis":res2, "skew":res3, "mode": res4[0]
+    })
 res5.index = res.columns
 res6 = res.transpose().join(res5)
-res7 = res6[["mean", "median", "mode", "amin", "amax", "std", "skew", "kurtosis"]]
-res7.to_csv("descriptiveStats.csv", sep=";", decimal =",")
+res7 = res6[
+    ["mean", "median", "mode", "amin", 
+    "amax", "var", "skew", "kurtosis"]]
+# res7.to_csv("descriptiveStats.csv", sep=";", decimal =",") # Salva para CSV
+pd.options.display.float_format = '{:.2f}'.format
 
+res7
 
 
 #%%
-#Calcular categorias para variaveis nominais
-nominalColsNames = varDataFrame.Name[nominalColumns]
+import seaborn as sns
+corr = dataNumerical.corr()
+cmap = sns.diverging_palette(220, 10, as_cmap=True)
+fig, ax = plt.subplots(figsize=(15,7))
+ax.set_title("Correlograma das Variáveis Quantitativas")
+sns.heatmap(corr, ax=ax, cmap=cmap, center=0,
+            square=True, linewidths=.5, cbar_kws={"shrink": .5})
+plt.show()
 
-for i, col in zip(nominalColsNames.index, nominalColsNames):
-    varDataFrame["Categories"][i] = str(list(dataFrame[col].values.categories))
 
-varDataFrame.to_csv("variables2.csv", sep=";", decimal=",")
 #%%
