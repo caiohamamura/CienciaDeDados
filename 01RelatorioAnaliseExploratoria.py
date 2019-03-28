@@ -19,6 +19,12 @@ from AnaliseInicial.TratamentoDados import (
 # Pré-processamento em modo gráfico
 # =============================================================================
 
+#dataFrame original p/ visualizar dados iniciais
+dataFrame2=pd.read_csv('train.csv')
+
+# Checar dados faltantes em modo gráfico
+msno.matrix(dataFrame2, labels=True, color=(0.5,0.5,1), sparkline=False)
+
 # Checar dados faltantes em modo gráfico
 msno.matrix(dataFrame, labels=True, color=(0.5,0.5,1), sparkline=False)
 
@@ -26,7 +32,7 @@ msno.matrix(dataFrame, labels=True, color=(0.5,0.5,1), sparkline=False)
 # Boxplot com o valor de venda da casa com e sem piscina
 fig1, ax1 = plt.subplots()
 ax1.set_title('Basic Plot')
-plt.boxplot([dataFrame["SalePrice"][dataFrame.PoolArea>0], dataFrame["SalePrice"][dataFrame.PoolArea==0]], 
+plt.boxplot([dataFrame2["SalePrice"][dataFrame2.PoolArea>0], dataFrame2["SalePrice"][dataFrame2.PoolArea==0]], 
             labels=["Com Piscina", "Sem Piscina"])
 
 #%%
@@ -34,7 +40,7 @@ plt.boxplot([dataFrame["SalePrice"][dataFrame.PoolArea>0], dataFrame["SalePrice"
 plt.xlabel("Preço de Venda (US$)")
 plt.ylabel("Quantidade")
 plt.axes().set_xlim(0, 500000)
-plt.hist(dataFrame["SalePrice"], bins=40)
+plt.hist(dataFrame2["SalePrice"], bins=40)
 plt.show()
 
 #%%
@@ -42,8 +48,8 @@ plt.show()
 figure(num=None, 
         figsize=(15, 10), 
         dpi=80, edgecolor='k')
-bairros = dataFrame["Neighborhood"]
-precoDeVenda = dataFrame["SalePrice"]
+bairros = dataFrame2["Neighborhood"]
+precoDeVenda = dataFrame2["SalePrice"]
 for i, bairro in enumerate(
             np.unique(bairros)):
     axs = plt.subplot(5, 5, i+1)
