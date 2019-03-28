@@ -176,3 +176,20 @@ ax1.violinplot(dataFrame.groupby("OverallQual")["SalePrice"].apply(list))
 plt.show()
 
 #%%
+# Estatísticas descritivas para variáveis exporta para csv
+from scipy import stats
+numericalCols = varDataFrame.Name[pd.isna(varDataFrame.Categorical)]
+dataNumerical = dataFrame[numericalCols]
+res=dataNumerical.apply(func=[np.mean, np.median, np.max, np.min, np.std], axis=0)
+res2=stats.kurtosis(dataNumerical, axis=0, nan_policy="omit")
+res3=stats.skew(dataNumerical, axis=0, nan_policy="omit")
+res4 = stats.mode(dataFrame[numericalCols], axis=0, nan_policy="omit").mode
+res5 = pd.DataFrame({"kurtosis":res2, "skew":res3, "mode": res4[0]})
+res5.index = res.columns
+res6 = res.transpose().join(res5)
+res7 = res6[["mean", "median", "mode", "amin", "amax", "std", "skew", "kurtosis"]]
+res7.to_csv("descriptiveStats.csv", sep=";", decimal =",")
+
+
+#%%
+plt.hist(dataFrame["YearBuilt"])
