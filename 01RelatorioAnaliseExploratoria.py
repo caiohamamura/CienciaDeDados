@@ -29,15 +29,6 @@ from AnaliseInicial.TratamentoDados import (
 # =============================================================================
 msno.matrix(dataFrame, labels=True, color=(0.5,0.5,1), sparkline=False)
 
-#%%
-# Verificar graficamente valor de venda da casa com e sem piscina
-
-bplot = plt.boxplot([dataFrame["SalePrice"][dataFrame.PoolArea>0], 
-            dataFrame["SalePrice"][dataFrame.PoolArea==0]], 
-            labels=["Com Piscina", "Sem Piscina"],
-            patch_artist=True)  # fill with color
-[patch.set_facecolor("#6666FF") for patch in bplot['boxes']]
-plt.show()
 
 #%%
 # Ignora as 23 variáveis nominais/categóricas
@@ -158,6 +149,25 @@ fig, ax = plt.subplots(figsize=(15,7))
 ax.set_title("Correlograma das Variáveis Quantitativas")
 sns.heatmap(corr, ax=ax, cmap=cmap, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
+plt.show()
+
+
+#%%
+dataNumerical.cov()
+cov = dataNumerical.cov()
+mask = np.zeros_like(cov, dtype=np.bool)
+mask[np.triu_indices_from(mask)] = True
+
+np.percentile(cov.values.flatten(), 90)
+
+cmap = sns.diverging_palette(220, 10, as_cmap=True)
+fig, ax = plt.subplots(figsize=(15,7))
+ax.set_title("Mapa de Calor de Covariâncias")
+ax = sns.heatmap(cov, ax=ax, cmap=cmap, vmin=-131, vmax=24000, center=12000,
+            square=True, linewidths=.5, cbar_kws={"shrink": .5})
+colorbar = ax.collections[0].colorbar
+colorbar.set_ticks([-131, 12000, 24000])
+colorbar.set_ticklabels
 plt.show()
 
 
