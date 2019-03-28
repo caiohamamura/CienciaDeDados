@@ -41,7 +41,6 @@ varDataFrame = pd.read_csv("variables.csv", delimiter=";")
 
 # Separa as variáveis nominais/categóricas
 nominalColumns=np.logical_and(varDataFrame.Categorical, np.logical_not(varDataFrame.Ordered))
-#col = varDataFrame.Name[nominalColumns][0]
 
 # Nominais/categóricas
 for col in varDataFrame.Name[nominalColumns]:
@@ -191,5 +190,13 @@ res7 = res6[["mean", "median", "mode", "amin", "amax", "std", "skew", "kurtosis"
 res7.to_csv("descriptiveStats.csv", sep=";", decimal =",")
 
 
+
 #%%
-plt.hist(dataFrame["YearBuilt"])
+#Calcular categorias para variaveis nominais
+nominalColsNames = varDataFrame.Name[nominalColumns]
+
+for i, col in zip(nominalColsNames.index, nominalColsNames):
+    varDataFrame["Categories"][i] = str(list(dataFrame[col].values.categories))
+
+varDataFrame.to_csv("variables2.csv", sep=";", decimal=",")
+#%%
