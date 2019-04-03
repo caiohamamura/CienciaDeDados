@@ -24,7 +24,7 @@ comm.Allgather(sendbuf2, recvbuf2, root=0)
 # if rank == 0:
 result = np.split(recvbuf, size)
 result = [bytes(list(i)).decode('utf8') for i in result]
-print('Rank: ',recvbuf2, ', recvbuf received: ', result)
+print('This rank ', rank,' Ranks: ',recvbuf2, ', recvbuf received: ', result)
 
 # hosts = result
 # ranks = recvbuf2
