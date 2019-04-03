@@ -46,14 +46,9 @@ if rank == 0:
 with tf.train.MonitoredTrainingSession(
                 master=server.target,
                 is_chief=(rank == 0),
-                checkpoint_dir="/tmp/train_logs",
-                hooks=hooks) as mon_sess:
+                checkpoint_dir="/tmp/train_logs") as mon_sess:
 
     print("Value of var in session %d:" % (rank), mon_sess.run(var))
-
-
-with tf.device("/job:nodes/task:1"):
-    print("This is rank %d talking" % (rank))
 
 
 # var = tf.Variable(initial_value=0.0, name='var')
