@@ -1,20 +1,17 @@
 from mpi4py import MPI
 import numpy as np
-import socket
-hostname = socket.gethostname()
-
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-numDataPerRank = 1
-sendbuf = np.array([hostname], dtype=np.unicode)
+numDataPerRank = 10
+sendbuf = np.arange(numDataPerRank*rank, numDataPerRank*(rank+1), dtype=np.float64)
 print('Rank: ',rank, ', sendbuf: ',sendbuf)
 
 recvbuf = None
 if rank == 0:
-    recvbuf = np.empty(numDataPerRank*size, dtype=np.unicode)
+    recvbuf = np.empty(numDataPerRank*size, dtype=np.float64)
 
 comm.Gather(sendbuf, recvbuf, root=0)
 
