@@ -18,5 +18,9 @@ if rank == 0:
 
 comm.Gather(sendbuf, recvbuf, root=0)
 
+
+
 if rank == 0:
-    print('Rank: ',rank, ', recvbuf received: ',recvbuf)
+    result = np.split(recvbuf, size)
+    result = [bytes(list(i)).decode('utf8') for i in result]
+    print('Rank: ',rank, ', recvbuf received: ', result)
