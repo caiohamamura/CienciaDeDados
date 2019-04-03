@@ -42,9 +42,13 @@ sess.run(tf.global_variables_initializer())
 print("Initial value of var in session %d:" % (rank), sess.run(var))
 
 if rank == 0:
-    sess.run(var.assign_add(1.0))
-
+    server.join()
+    sess.run(var.assign_add(1.0))    
+    print("Value of var in session %d:" % (rank), sess.run(var))
 
 print("Value of var in session %d:" % (rank), sess.run(var))
+
+
+
 
 
