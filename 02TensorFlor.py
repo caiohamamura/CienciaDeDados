@@ -10,17 +10,19 @@ rank = comm.Get_rank()
 
 numDataPerRank = len(hostname)
 sendbuf = np.array(hostname, dtype=np.uint8)
+sendbuf2 = np.array(rank, dtype=np.uint8)
 print('Rank: ',rank, ', sendbuf: ',sendbuf)
 
 recvbuf = None
 if rank == 0:
     recvbuf = np.empty(numDataPerRank*size, dtype=np.uint8)
+    recvbuf2 = np.empty(size, dtype=np.uint8)
 
 comm.Gather(sendbuf, recvbuf, root=0)
-
+comm.Gather(sendbuf2, recvbuf2, root=0)
 
 
 if rank == 0:
     result = np.split(recvbuf, size)
     result = [bytes(list(i)).decode('utf8') for i in result]
-    print('Rank: ',rank, ', recvbuf received: ', result)
+    print('Rank: ',recvbuf2, ', recvbuf received: ', result)
