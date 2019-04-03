@@ -31,13 +31,10 @@ print('This rank ', rank,' Ranks: ',recvbuf2, ', recvbuf received: ', result)
 hosts = result
 ranks = recvbuf2
 
-hosts = ['s001-n002', 's001-n002', 's001-n095', 's001-n095', 's001-n004', 's001-n004', 's001-n096', 's001-n096']
-ranks = range(7)
-
-jobs = {nodes: '%s:222%s' % (i, j) for (i,j) in zip(hosts, ranks)]}
+jobs = {'nodes': ['%s:222%s' % (i, j) for (i,j) in zip(hosts, ranks)]}
 cluster = tf.train.ClusterSpec(jobs)
 
-server = tf.train.Server(cluster, job_name="local", task_index=rank)
+server = tf.train.Server(cluster, job_name="nodes", task_index=rank)
 tf.reset_default_graph()
 var = tf.Variable(initial_value=0.0, name='var')
 sess = tf.Session(server.target)
