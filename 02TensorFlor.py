@@ -17,8 +17,8 @@ print('Rank: ',rank, ', sendbuf: ',sendbuf)
 recvbuf = np.empty(numDataPerRank*size, dtype=np.uint8)
 recvbuf2 = np.empty(size, dtype=np.uint8)
 
-comm.Allgather(sendbuf, recvbuf, root=0)
-comm.Allgather(sendbuf2, recvbuf2, root=0)
+comm.Allgather(sendbuf, recvbuf)
+comm.Allgather(sendbuf2, recvbuf2)
 
 
 # if rank == 0:
