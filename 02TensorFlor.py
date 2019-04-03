@@ -42,11 +42,12 @@ sess.run(tf.global_variables_initializer())
 
 if rank == 0:
     sess.run(var.assign_add(1.0))
+    server.join()
 
-with tf.train.MonitoredTrainingSession(
-                master=server.target,
-                is_chief=(rank == 0)) as mon_sess:
-    print("Value of var in session %d:" % (rank), mon_sess.run(var))
+# with tf.train.MonitoredTrainingSession(
+#                 master=server.target,
+#                 is_chief=(rank == 0)) as mon_sess:
+#     print("Value of var in session %d:" % (rank), mon_sess.run(var))
 
 
 # var = tf.Variable(initial_value=0.0, name='var')
