@@ -14,6 +14,7 @@ sendbuf2 = np.array([rank], dtype=np.uint8)
 print('Rank: ',rank, ', sendbuf: ',sendbuf)
 
 recvbuf = None
+recvbuf2 = None
 if rank == 0:
     recvbuf = np.empty(numDataPerRank*size, dtype=np.uint8)
     recvbuf2 = np.empty(size, dtype=np.uint8)
