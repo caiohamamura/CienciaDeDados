@@ -10,7 +10,7 @@ rank = comm.Get_rank()
 
 numDataPerRank = len(hostname)
 sendbuf = np.array(hostname, dtype=np.uint8)
-sendbuf2 = np.array(rank, dtype=np.uint8)
+sendbuf2 = np.array([rank], dtype=np.uint8)
 print('Rank: ',rank, ', sendbuf: ',sendbuf)
 
 recvbuf = None
