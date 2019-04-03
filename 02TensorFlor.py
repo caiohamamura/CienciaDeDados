@@ -45,9 +45,7 @@ if rank == 0:
 
 with tf.train.MonitoredTrainingSession(
                 master=server.target,
-                is_chief=(rank == 0),
-                checkpoint_dir="/tmp/train_logs") as mon_sess:
-
+                is_chief=(rank == 0)) as mon_sess:
     print("Value of var in session %d:" % (rank), mon_sess.run(var))
 
 
