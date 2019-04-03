@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-Este é um arquivo de script temporário.
-"""
-
 #%%
 import missingno as msno
 import pandas as pd
@@ -12,8 +5,7 @@ import pandas as pd
 import sklearn.ensemble
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
-from sklearn import preprocessing
-
+#from sklearn import preprocessing
 
 # Importa dataFrame e variaveis pré processadas
 from AnaliseInicial.TratamentoDados import (
@@ -22,60 +14,29 @@ from AnaliseInicial.TratamentoDados import (
     varsDataFrame   #dataFrame das variaveis
 )
 
-
 #%%
 # =============================================================================
-# Checar dados faltantes em modo gráfico
+# Pré-processamento em modo gráfico
 # =============================================================================
+
+#dataFrame original p/ visualizar dados iniciais
+dataFrame2=pd.read_csv('train.csv')
+
+# Checar dados faltantes em modo gráfico
+msno.matrix(dataFrame2, labels=True, color=(0.5,0.5,1), sparkline=False)
+
+# Checar dados faltantes em modo gráfico
 msno.matrix(dataFrame, labels=True, color=(0.5,0.5,1), sparkline=False)
 
+#%%
+# Boxplot com o valor de venda da casa com e sem piscina
+fig1, ax1 = plt.subplots()
+ax1.set_title('Basic Plot')
+plt.boxplot([dataFrame2["SalePrice"][dataFrame2.PoolArea>0], dataFrame2["SalePrice"][dataFrame2.PoolArea==0]], 
+            labels=["Com Piscina", "Sem Piscina"])
 
 #%%
-# Ignora as 23 variáveis nominais/categóricas
-nominalColumns = varsDataFrame.Ordered == False
-tudo=np.logical_not(nominalColumns)
-
-
-# Cria novo conjunto de dados sem as 23 variáveis nominais/categóricas
-dataFrame2 = dataFrame[dataFrame.columns.values[tudo.values.astype(bool)]]
-
-# Preenche as células nan com 0
-dataFrame2=dataFrame2.fillna(0)
-
-# Cria um list com as 57 variáveis restantes
-cols = list(dataFrame2.columns)
-
-# Seta a variável a ser predita
-colPredict = "SalePrice"
-
-# Remove a variável a ser predita
-cols.remove(colPredict)
-
-
-#%%
-# Realiza a regressão com o algoritmo floresta aleatória e plota os valores encontrados x esperados
-rf = sklearn.ensemble.RandomForestRegressor()
-rf.fit(dataFrame2[cols], dataFrame2[colPredict])
-
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-plt.xlabel("predict")
-plt.ylabel("observed")
-plt.plot(rf.predict(dataFrame2[cols]),dataFrame2[colPredict], 'ro')
-# ax.set_facecolor("#1E1E1E")
-plt.show()
-
-#%%
-# Plota as variáveis mais importantes da regressão em ordem decrescente
-dados=pd.DataFrame({"coluna":dataFrame2.columns[:-1], "importancia": rf.feature_importances_})
-dados=dados.sort_values(by="importancia", ascending=False)
-plt.xticks(rotation='vertical')
-plt.rcParams["figure.figsize"] = (15,3)
-plt.plot(dados.iloc[:,0], dados.iloc[:,1])
-plt.show()
-
-#%%
-# Histograma de Preço de venda
+# Histograma de preço de venda
 plt.xlabel("Preço de Venda (US$)")
 plt.ylabel("Quantidade")
 plt.axes().set_xlim(0, 500000)
@@ -87,8 +48,8 @@ plt.show()
 figure(num=None, 
         figsize=(15, 10), 
         dpi=80, edgecolor='k')
-bairros = dataFrame["Neighborhood"]
-precoDeVenda = dataFrame["SalePrice"]
+bairros = dataFrame2["Neighborhood"]
+precoDeVenda = dataFrame2["SalePrice"]
 for i, bairro in enumerate(
             np.unique(bairros)):
     axs = plt.subplot(5, 5, i+1)
@@ -104,7 +65,7 @@ plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 plt.show()
 
 #%%
-#Explorando a variavel mais importante (overall quality)
+# Explorando a variável mais importante (overall quality)
 fig1, ax1 = plt.subplots()
 ax1 = fig1.add_subplot(1, 1, 1)
 # ax1.set_facecolor("#1E1E1E")
@@ -117,7 +78,7 @@ ax1.violinplot(dataFrame.groupby("OverallQual")["SalePrice"].apply(list))
 plt.show()
 
 #%%
-# Estatísticas descritivas para variáveis exporta para csv
+# Estatísticas descritivas para variáveis quantitativas (exporta para csv)
 from scipy import stats
 numericalCols = varsDataFrame.Name[pd.isna(varsDataFrame.Categorical)]
 dataNumerical = dataFrame[numericalCols]
@@ -140,8 +101,8 @@ pd.options.display.float_format = '{:.2f}'.format
 
 res7
 
-
 #%%
+# Correlograma das variáveis quantitativas
 import seaborn as sns
 corr = dataNumerical.corr()
 cmap = sns.diverging_palette(220, 10, as_cmap=True)
@@ -151,8 +112,8 @@ sns.heatmap(corr, ax=ax, cmap=cmap, center=0,
             square=True, linewidths=.5, cbar_kws={"shrink": .5})
 plt.show()
 
-
 #%%
+# Mapa de calor de covariâncias
 dataNumerical.cov()
 cov = dataNumerical.cov()
 mask = np.zeros_like(cov, dtype=np.bool)
@@ -170,5 +131,54 @@ colorbar.set_ticks([-131, 12000, 24000])
 colorbar.set_ticklabels
 plt.show()
 
+#%%
+# =============================================================================
+# Machine Learning: Regressão
+# =============================================================================
+
+# Ignora as 23 variáveis nominais/categóricas
+#nominalColumns = varsDataFrame.Ordered == False
+#tudo=np.logical_not(nominalColumns)
+
+# Cria novo conjunto de dados sem as 23 variáveis nominais/categóricas
+#dataFrame2 = dataFrame[dataFrame.columns.values[tudo.values.astype(bool)]]
+dataFrame2 = dataFrame
+
+# Preenche as células nan com 0
+#dataFrame2=dataFrame2.fillna(0)
+
+# Cria um list com as 57 variáveis restantes
+cols = list(dataFrame2.columns)
+
+# Seta a variável a ser predita
+colPredict = "SalePrice"
+
+# Remove a variável a ser predita
+cols.remove(colPredict)
+
+# Realiza a regressão com o algoritmo floresta aleatória e plota os valores encontrados x esperados
+rf = sklearn.ensemble.RandomForestRegressor()
+rf.fit(dataFrame2[cols], dataFrame2[colPredict])
+
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+plt.xlabel("predict")
+plt.ylabel("observed")
+plt.plot(rf.predict(dataFrame2[cols]),dataFrame2[colPredict], 'ro')
+# ax.set_facecolor("#1E1E1E")
+plt.show()
+
+# Verifica objeto de maior diferença na regressão
+diff = abs(rf.predict(dataFrame[cols])-dataFrame[colPredict])
+diff = diff.sort_values(ascending = False)
+dataFrame[colPredict].iloc[522]
+rf.predict(dataFrame[cols])[522]
 
 #%%
+# Plota as variáveis mais importantes da regressão em ordem decrescente
+dados=pd.DataFrame({"coluna":dataFrame2.columns[:-1], "importancia": rf.feature_importances_})
+dados=dados.sort_values(by="importancia", ascending=False)
+plt.xticks(rotation='vertical')
+plt.rcParams["figure.figsize"] = (15,3)
+plt.plot(dados.iloc[:,0], dados.iloc[:,1])
+plt.show()
