@@ -33,10 +33,11 @@ ranks = recvbuf2
 
 jobs = {'nodes': ['%s:222%s' % (i, j) for (i,j) in zip(hosts, ranks)]}
 if rank == 0:
+    import json
     f = open("saida.out", "w+")
-    f.write("Teste\r\n")
-    f.write(str(jobs))
+    f.write(json.dumps(jobs))
     f.close()
+    
     
 
 cluster = tf.train.ClusterSpec(jobs)
