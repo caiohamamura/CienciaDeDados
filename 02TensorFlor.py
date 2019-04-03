@@ -13,7 +13,7 @@ rank = comm.Get_rank()
 numDataPerRank = len(hostname)
 sendbuf = np.array(hostname, dtype=np.uint8)
 sendbuf2 = np.array([rank], dtype=np.uint8)
-print('Rank: ',rank, ', sendbuf: ',sendbuf)
+# print('Rank: ',rank, ', sendbuf: ',sendbuf)
 
 
 recvbuf = np.empty(numDataPerRank*size, dtype=np.uint8)
@@ -26,23 +26,30 @@ comm.Allgather(sendbuf2, recvbuf2)
 # if rank == 0:
 result = np.split(recvbuf, size)
 result = [bytes(list(i)).decode('utf8') for i in result]
-print('This rank ', rank,' Ranks: ',recvbuf2, ', recvbuf received: ', result)
+# print('This rank ', rank,' Ranks: ',recvbuf2, ', recvbuf received: ', result)
 
 hosts = result
 ranks = recvbuf2
 
 jobs = {'nodes': ['%s:222%s' % (i, j) for (i,j) in zip(hosts, ranks)]}
+if rank == 0:
+    print(jobs)
+
 cluster = tf.train.ClusterSpec(jobs)
 
 server = tf.train.Server(cluster, job_name="nodes", task_index=rank)
-tf.reset_default_graph()
-var = tf.Variable(initial_value=0.0, name='var')
-sess = tf.Session(server.target)
-sess.run(tf.global_variables_initializer())
+server.start()
+server.join()
 
-if rank == 0:
-    sess.run(var.assign_add(1.0))
-    server.join()
+# server = tf.train.Server(cluster, job_name="nodes", task_index=rank)
+# tf.reset_default_graph()
+# var = tf.Variable(initial_value=0.0, name='var')
+# sess = tf.Session(server.target)
+# sess.run(tf.global_variables_initializer())
+
+# if rank == 0:
+#     sess.run(var.assign_add(1.0))
+#     server.join()
 
 # with tf.train.MonitoredTrainingSession(
 #                 master=server.target,
