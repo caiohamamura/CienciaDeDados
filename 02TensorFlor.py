@@ -36,12 +36,21 @@ cluster = tf.train.ClusterSpec(jobs)
 
 server = tf.train.Server(cluster, job_name="nodes", task_index=rank)
 tf.reset_default_graph()
+var = tf.Variable(initial_value=0.0, name='var')
+sess = tf.Session(server.target)
+sess.run(tf.global_variables_initializer())
 
-# with tf.train.MonitoredTrainingSession(
-#     master=server.target,
-#     is_chief=(rank == 0),
-#     checkpoint_dir="/tmp/train_logs",
-#     hooks=hooks) as mon_sess:
+if rank == 0:
+    sess.run(var.assign_add(1.0))
+
+with tf.train.MonitoredTrainingSession(
+                master=server.target,
+                is_chief=(rank == 0),
+                checkpoint_dir="/tmp/train_logs",
+                hooks=hooks) as mon_sess:
+
+    print("Value of var in session %d:" % (rank), mon_sess.run(var))
+
 
 with tf.device("/job:nodes/task:1"):
     print("This is rank %d talking" % (rank))
