@@ -1,0 +1,3 @@
+[submodule "KaggleFaceDetection"]
+	path = KaggleFaceDetection
+	url = git@github.com:caiohamamura/KaggleFaceDetection.git
