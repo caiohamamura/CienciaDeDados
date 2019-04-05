@@ -23,7 +23,7 @@ RoofStyle;object;True;False;['Flat', 'Gable', 'Gambrel', 'Hip', 'Mansard', 'Shed
 RoofMatl;object;True;False;['ClyTile', 'CompShg', 'Membran', 'Metal', 'Roll', 'Tar&Grv', 'WdShake', 'WdShngl'];['ClyTile', 'CompShg', 'Membran', 'Metal', 'Roll', 'Tar&Grv', 'WdShake', 'WdShngl']
 Exterior1st;object;True;False;['AsbShng', 'AsphShn', 'BrkComm', 'BrkFace', 'CBlock', 'CemntBd', 'HdBoard', 'ImStucc', 'MetalSd', 'Plywood', 'Stone', 'Stucco', 'VinylSd', 'Wd Sdng', 'WdShing'];['AsbShng', 'AsphShn', 'BrkComm', 'BrkFace', 'CBlock', 'CemntBd', 'HdBoard', 'ImStucc', 'MetalSd', 'Plywood', 'Stone', 'Stucco', 'VinylSd', 'Wd Sdng', 'WdShing']
 Exterior2nd;object;True;False;['AsbShng', 'AsphShn', 'Brk Cmn', 'BrkFace', 'CBlock', 'CmentBd', 'HdBoard', 'ImStucc', 'MetalSd', 'Other', 'Plywood', 'Stone', 'Stucco', 'VinylSd', 'Wd Sdng', 'Wd Shng'];['AsbShng', 'AsphShn', 'BrkComm', 'BrkFace', 'CBlock', 'CemntBd', 'HdBoard', 'ImStucc', 'MetalSd', 'Other', 'Plywood', 'Stone', 'Stucco', 'VinylSd', 'Wd Sdng', 'Wd Shng']
-MasVnrType;object;True;False;['BrkCmn', 'BrkFace', 'None', 'Stone'];['BrkCmn', 'BrkFace', 'None', 'Stone']
+MasVnrType;object;True;False;['BrkCmn', 'BrkFace', 'None', 'Stone', 'NaN'];['BrkCmn', 'BrkFace', 'None', 'Stone', 'NA']
 MasVnrArea;float64;;;;
 ExterQual;object;True;True;['Po', 'Fa', 'TA', 'Gd', 'Ex'];['Po', 'Fa', 'TA', 'Gd', 'Ex']
 ExterCond;object;True;True;['Po', 'Fa', 'TA', 'Gd', 'Ex'];['Po', 'Fa', 'TA', 'Gd', 'Ex']
@@ -31,16 +31,16 @@ Foundation;object;True;False;['BrkTil', 'CBlock', 'PConc', 'Slab', 'Stone', 'Woo
 BsmtQual;object;True;True;['NA', 'Po', 'Fa', 'TA', 'Gd', 'Ex'];['NA', 'Po', 'Fa', 'TA', 'Gd', 'Ex']
 BsmtCond;object;True;True;['NA', 'Po', 'Fa', 'TA', 'Gd', 'Ex'];['NA', 'Po', 'Fa', 'TA', 'Gd', 'Ex']
 BsmtExposure;object;True;True;['NA', 'No', 'Mn', 'Av', 'Gd'];['NA', 'No', 'Mn', 'Av', 'Gd']
-BsmtFinType1;object;True;True;['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GQL'];['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GQL']
+BsmtFinType1;object;True;True;['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GLQ'];['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GQL']
 BsmtFinSF1;int64;;;;
-BsmtFinType2;object;True;True;['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GQL'];['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GQL']
+BsmtFinType2;object;True;True;['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GLQ'];['NA', 'Unf', 'LwQ', 'Rec', 'BLQ', 'ALQ', 'GQL']
 BsmtFinSF2;int64;;;;
 BsmtUnfSF;int64;;;;
 TotalBsmtSF;int64;;;;
 Heating;object;True;False;['Floor', 'GasA', 'GasW', 'Grav', 'OthW', 'Wall'];['Floor', 'GasA', 'GasW', 'Grav', 'OthW', 'Wall']
 HeatingQC;object;True;True;['Po', 'Fa', 'TA', 'Gd', 'Ex'];['Po', 'Fa', 'TA', 'Gd', 'Ex']
 CentralAir;object;True;False;['N', 'Y'];['N', 'Y']
-Electrical;object;True;False;['FuseA', 'FuseF', 'FuseP', 'Mix', 'SBrkr'];['FuseA', 'FuseF', 'FuseP', 'Mix', 'SBrkr']
+Electrical;object;True;False;['FuseA', 'FuseF', 'FuseP', 'Mix', 'SBrkr', 'NaN'];['FuseA', 'FuseF', 'FuseP', 'Mix', 'SBrkr', 'NA']
 1stFlrSF;int64;;;;
 2ndFlrSF;int64;;;;
 LowQualFinSF;int64;;;;
