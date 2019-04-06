@@ -95,13 +95,24 @@ from sklearn.feature_selection import chi2, f_regression
 from sklearn.feature_selection import f_classif
 
 
+
+#FIXME: Completar NaN com 0 
+dataFrame3=dataFrame2.fillna(0.0)
 #Colunas presentes
-cols2 = dataFrame2.columns.values
+cols2 = dataFrame3.columns.values
 #Máscara de colunas que não são SalePrice
 colsNotSalePrice2 = cols2[cols2!="SalePrice"]
 
-#FIXME: Completar NaN com 0 
-dataFrame3=dataFrame2.fillna(0)
+
+### Tranformar variáveis nominais em números
+# dataFrame4 = dataFrame.fillna(0)
+# for col in dataFrame4.columns.values[dataFrame4.dtypes == 'category']:
+#     dataFrame4[col] = dataFrame4[col].cat.rename_categories(
+#         range(1, dataFrame4[col].cat.categories.size+1)
+#         )
+#     dataFrame4[col] = dataFrame4[col].astype(np.int)
+
+
 
 # Seletores
 selectors = [chi2, f_regression]
