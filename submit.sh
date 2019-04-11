@@ -1,5 +1,5 @@
-#PBS -l nodes=4
-#PBS -l walltime=0:10:0
+#PBS -l nodes=1:ppn=2
+#PBS -l walltime=0:60:0
 #PBS -o /dev/null
 #PBS -e ~/error${SEED}.log
 
