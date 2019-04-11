@@ -11,14 +11,14 @@ def write(val):
 
 
 from mlxtend import feature_selection
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVR
 from sklearn import model_selection
 
-#Cria estimador
-estimator3 = RandomForestRegressor()
-#Cria seletor com validação cruzada 3-fold e 10 repetições
-sfs3=feature_selection.SequentialFeatureSelector(
-    estimator3,
+from mlxtend import feature_selection
+
+estimator = SVR(kernel="linear")
+sfs=feature_selection.SequentialFeatureSelector(
+    estimator,
     k_features=21,
     forward=True,
     scoring="r2",
@@ -26,7 +26,8 @@ sfs3=feature_selection.SequentialFeatureSelector(
     n_jobs=-1)
 
 
-sfs4 = sfs3.fit(dataFrame3[colsNotSalePrice2], dataFrame3["SalePrice"])
-pd.to_pickle(sfs3, "./PickledObjects/sfs3.pkl")
-pd.to_pickle(sfs4, "./PickledObjects/sfs4.pkl")
+sfs2 = sfs.fit(dataFrame3[colsNotSalePrice2], dataFrame3["SalePrice"])
+
+pd.to_pickle(sfs, "./PickledObjects/sfs.pkl")
+pd.to_pickle(sfs2, "./PickledObjects/sfs2.pkl")
 
