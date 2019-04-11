@@ -4,4 +4,4 @@
 #PBS -e ~/error${SEED}.log
 
 cd src/CienciaDeDados
-mpirun python 02TensorFlor.py > output.out
+python 02RodaNoCloudIntel.py > output.out

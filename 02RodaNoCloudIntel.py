@@ -1,15 +1,8 @@
-from mpi4py import MPI
-import numpy as np
 import pandas as pd
 from sklearn.feature_selection import mutual_info_regression
 import sys
-
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()   
-colsNotSalePrice2 = pd.read_pickle("colsNotSalePrice2")
-dataFrame3 = pd.read_csv("dataFrame3")
-corrMutualInfo = pd.DataFrame(columns=[colsNotSalePrice2])
+colsNotSalePrice2 = pd.read_pickle("./PickledObjects/colsNotSalePrice2.pkl")
+dataFrame3 = pd.read_csv("./PickledObjects/dataFrame3.csv")
 
 def write(val):
     with open("outlog%.d" % rank, "a+") as f:
@@ -17,9 +10,27 @@ def write(val):
         f.write("\n")
 
 
-for col in np.array_split(colsNotSalePrice2, size)[rank]:
-    write("Processing %s" % col)
-    corrMutualInfo.loc[col] = mutual_info_regression(dataFrame3[colsNotSalePrice2], dataFrame3[col], discrete_features=True)
-     #print("Rank %d got column: %s" % (rank, col))
+from mlxtend import feature_selection
+from sklearn.ensemble import RandomForestRegressor
+from sklearn import model_selection
+
+#Cria estimador
+estimator3 = RandomForestRegressor()
+#Cria seletor com validação cruzada 3-fold e 10 repetições
+sfs3=feature_selection.SequentialFeatureSelector(
+    estimator,
+    k_features=21,
+    forward=True,
+    scoring="r2",
+    cv=model_selection.RepeatedStratifiedKFold(3, 10),
+    n_jobs=-1)
+
+
+sfs4 = sfs.fit(dataFrame[colsNotSalePrice2], dataFrame["SalePrice"])
+pd.to_pickle(sfs3, "./PickledObjects/sfs3.pkl")
+pd.to_pickle(sfs4, "./PickledObjects/sfs4.pkl")
+
+
+
     
 corrMutualInfo.to_csv("corrMutualInfo%.2d.csv" % rank)
