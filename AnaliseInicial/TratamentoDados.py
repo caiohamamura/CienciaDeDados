@@ -63,14 +63,13 @@ ordinalColumnsMask=np.logical_and(
 ####################
 # Ajusta as categorias ordinais para o tipo de dados "Categoria"
 for col, cats in varDataFrame[ordinalColumnsMask][["Name", "Categories"]].values:
-    dataFrame[col] = dataFrame[col].fillna("NA")
-    pd.unique(dataFrame[col])
+    dataFrame[col].fillna("NA", inplace=True)
     dataFrame[col] = pd.Categorical(dataFrame[col], categories=cats, ordered=True)
     # renomeia as categorias usando sequências de números
-    dataFrame[col] = dataFrame[col].cat.rename_categories(
-        range(1, dataFrame[col].cat.categories.size+1)
+    dataFrame[col].cat.rename_categories(
+        range(1, dataFrame[col].cat.categories.size+1),
+        inplace=True
         )
-    dataFrame[col] = dataFrame[col].astype(np.int)
     
 
 ########################
