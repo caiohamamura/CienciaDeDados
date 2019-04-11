@@ -18,7 +18,7 @@ from sklearn import model_selection
 estimator3 = RandomForestRegressor()
 #Cria seletor com validação cruzada 3-fold e 10 repetições
 sfs3=feature_selection.SequentialFeatureSelector(
-    estimator,
+    estimator3,
     k_features=21,
     forward=True,
     scoring="r2",
@@ -26,11 +26,7 @@ sfs3=feature_selection.SequentialFeatureSelector(
     n_jobs=-1)
 
 
-sfs4 = sfs.fit(dataFrame[colsNotSalePrice2], dataFrame["SalePrice"])
+sfs4 = sfs3.fit(dataFrame3[colsNotSalePrice2], dataFrame3["SalePrice"])
 pd.to_pickle(sfs3, "./PickledObjects/sfs3.pkl")
 pd.to_pickle(sfs4, "./PickledObjects/sfs4.pkl")
 
-
-
-    
-corrMutualInfo.to_csv("corrMutualInfo%.2d.csv" % rank)
