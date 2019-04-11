@@ -334,20 +334,18 @@ for col in colsNotSalePrice2[selector3.ranking_==1]:
 
 
 #Seleção por forward SequentialFeatureSelector 
-from mlxtend import feature_selection
+# from mlxtend import feature_selection
 
-sfs=feature_selection.SequentialFeatureSelector(
-    estimator,
-    k_features=21,
-    forward=True,
-    scoring="r2",
-    cv=model_selection.RepeatedStratifiedKFold(3, 10),
-    n_jobs=-1)
-
-
-sfs2 = sfs.fit(dataFrame[colsNotSalePrice2], dataFrame["SalePrice"])
+# sfs=feature_selection.SequentialFeatureSelector(
+#     estimator,
+#     k_features=21,
+#     forward=True,
+#     scoring="r2",
+#     cv=model_selection.RepeatedStratifiedKFold(3, 10),
+#     n_jobs=-1)
 
 
+# sfs2 = sfs.fit(dataFrame[colsNotSalePrice2], dataFrame["SalePrice"])
 
 #Gera gráficos com os resultados
 import seaborn as sns
@@ -355,20 +353,34 @@ import seaborn as sns
 #Fundo branco
 sns.set(style="white")
 
-#DataFrame com resultados do SVM
-svmPlot=pd.DataFrame({
-    "Nº variáveis": range(5, len(selector3.grid_scores_) + 5), 
-    "algorithm":"svm", 
-    "Correlação": selector.grid_scores_})
+# #DataFrame com resultados do SVM
+# svmPlot=pd.DataFrame({
+#     "Nº variáveis": range(5, len(selector3.grid_scores_) + 5), 
+#     "algorithm":"svm", 
+#     "Correlação": selector.grid_scores_})
 
 #DataFrame com resultados do RF
+
+selector3 = pd.read_pickle("./PickledObjects/selector3.pkl")
 rfPlot=pd.DataFrame({
-    "Nº variáveis": range(5, len(selector3.grid_scores_) + 5), 
-    "algorithm":"rf", 
+    "Nº variáveis": range(1, len(selector3.grid_scores_)+1), 
+    "algorithm":"RFE-rf", 
     "Correlação": selector3.grid_scores_})
 
+
+sfs4 = pd.read_pickle("./PickledObjects/sfs4.pkl")
+dict4 = sfs4.get_metric_dict()
+rfPlot2=pd.DataFrame(columns=["Nº variáveis", "algorithm", "Correlação"])
+for key,value in dict4.items():
+    rfPlot2.loc[rfPlot2.shape[0]] = {"Nº variáveis": key,
+    "algorithm": "SFS-rf",
+    "Correlação":value["avg_score"]
+    }
+rfPlot
+
+
 #DataFrame conjunto
-jointDf=svmPlot.append(rfPlot)
+jointDf=rfPlot2.append(rfPlot)
 
 
 #Paleta de cores brilhante
@@ -379,9 +391,10 @@ ax1=sns.lineplot(x="Nº variáveis", y="Correlação",
              data=jointDf, hue="algorithm", palette=palette)
 
 #Remove linha referente ao RF (não dá para ver direito)
-ax1.get_lines()[1].set_color("#FFFFFF00")
+# ax1.get_lines()[1].set_color("#FFFFFF00")
+ax1.set(xticks=np.arange(0, 90, 10))
 texto=ax1.legend().get_texts()
-ax1.set_ylabel("Correlação svm")
+ax1.set_ylabel("Correlação r²")
 texto[0].set_text("Legenda")
 texto[0].set_x(-30)
 
