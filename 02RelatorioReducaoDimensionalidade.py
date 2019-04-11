@@ -1,4 +1,3 @@
-# =============================================================================
 import pandas as pd
 import sklearn.ensemble
 from sklearn import preprocessing
@@ -7,7 +6,8 @@ import matplotlib.pyplot as plt
 from AnaliseInicial.TratamentoDados import (
     np,
     dataFrame2,
-    dataFrame
+    dataFrame,
+    varDataFrame
 )
 
 # Cria um list com as 57 variáveis restantes
@@ -54,13 +54,14 @@ cols_values=np.dstack((col_pairs_autocorr_0_7, corr_values))
 
 
 # Exportar dataframe para Latex
-import clipboard
-clipboard.copy(pd.DataFrame({"Atributo1": col_pairs_autocorr_0_7[:,0], 
-    "Atributo2": col_pairs_autocorr_0_7[:,1], 
-    "Atr1_|r|_SalePrice": np.abs(cols_1_values.values),
-    "Atr2_|r|_SalePrice": np.abs(cols_2_values.values),
-    "|r|": triu[mascara_correlacao][col1_mask]
-    }).to_latex(index=False))
+# import clipboard
+# clipboard.copy(pd.DataFrame({"Atributo1": col_pairs_autocorr_0_7[:,0], 
+#     "Atributo2": col_pairs_autocorr_0_7[:,1], 
+#     "Atr1_|r|_SalePrice": np.abs(cols_1_values.values),
+#     "Atr2_|r|_SalePrice": np.abs(cols_2_values.values),
+#     "|r|": triu[mascara_correlacao][col1_mask]
+#     }).to_latex(index=False))
+
 
 
 # pd.DataFrame({"Atributo1": col_pairs_autocorr_0_7[:,0], 
@@ -85,42 +86,34 @@ plt.show()
 
 
 # Pega variavel com menor autocorrelação para remoção
-mascara_remocao = cols_values[:,:,1].argmin(axis=1)
-col_pairs = cols_values[:,:,0]
-vars_menor_correlacao = [i[j] for i, j in zip(col_pairs, mascara_remocao)]
+# mascara_remocao = cols_values[:,:,1].argmin(axis=1)
+# col_pairs = cols_values[:,:,0]
+# vars_menor_correlacao = [i[j] for i, j in zip(col_pairs, mascara_remocao)]
 
 # Ajuste manual
-naoremove = ["KitchenQual", "GarageYrBlt", "Fireplaces", "1stFlrSF"] 
-[vars_menor_correlacao.remove(i) for i in naoremove]
-remove = ["FireplacesQu", "TotalBsmtSF"]
-[vars_menor_correlacao.append(i) for i in remove]
+# naoremove = ["KitchenQual", "GarageYrBlt", "Fireplaces", "1stFlrSF"] 
+# [vars_menor_correlacao.remove(i) for i in naoremove]
+# remove = ["FireplacesQu", "TotalBsmtSF"]
+# [vars_menor_correlacao.append(i) for i in remove]
 
 # Remover as colunas com |r| > 0,7
-dataFrame2 = dataFrame2.drop(vars_menor_correlacao,1)
-dataFrame = dataFrame.drop(vars_menor_correlacao,1)
+# dataFrame2 = dataFrame2.drop(vars_menor_correlacao,1)
+# dataFrame = dataFrame.drop(vars_menor_correlacao,1)
 
-
-
-#FIXME: Completar NaN com 0 
-dataFrame3=dataFrame
+""" 
+ Análise de correlação entre variáveis nominais;
+"""
 #Colunas presentes
-cols2 = dataFrame3.columns.values
-#cols2 = np.array(["MSSubClass", "Alley", "GrLivArea", "Neighborhood", "OverallQual", "SalePrice"])
-
-colsCategory = dataFrame3.columns[(dataFrame3.dtypes=="category")]
-for col in colsCategory:
-    dataFrame3[col].cat.rename_categories(np.arange(1, dataFrame3[col].cat.categories.size+1, dtype='float64'), inplace=True)
+cols2 = dataFrame.columns.values
 
 
 #Máscara de colunas que não são SalePrice
 colsNotSalePrice2 = cols2[cols2!="SalePrice"]
-dataFrame3.fillna(dataFrame3.median(), inplace=True)
 
-
-# Análise de correlação entre variáveis nominais;
 from sklearn.feature_selection import chi2
+import scipy.stats
 
-dataFrameNominal = dataFrame.loc[:,dataFrame.dtypes == 'category']
+dataFrameNominal = dataFrame[varDataFrame["Name"][varDataFrame["Ordered"]==False]]
 dataFrameNominal = dataFrameNominal.join(dataFrame.iloc[:,-1])
 
 from scipy import stats
@@ -135,10 +128,11 @@ for col_i in range(dataFrameNominal.columns.size):
     for col_j in range(col_i+1, dataFrameNominal.columns.size):
         col1 = dataFrameNominal.columns[col_i]
         col2 = dataFrameNominal.columns[col_j]
-        print("col1|col2 : %s|%s" % (col1, col2))
-        ct = pd.crosstab(dataFrameNominal[col1], dataFrameNominal[col2])
-        res=stats.chi2_contingency(ct.T)[0:3]
-        corrTab[col1][col2] = res[1]
+        ct = pd.crosstab(dataFrameNominal[col2], dataFrameNominal[col1])
+        res=stats.chi2_contingency(ct)[1]
+        corrTab[col1][col2] = res
+
+
 
 # Calcula a correlação entre cada variável nominal e a resposta
 for col in dataFrameNominal.columns[:-1]:
@@ -161,7 +155,6 @@ row_col_names = np.dstack((row_names, col_names))
 
 # Gera pares de variáveis autocorrelacionadas
 mascara_correlacao = np.triu(np.abs(triu)<1e-135, 1)
-np.sum(mascara_correlacao)
 col_pairs_autocorr_0_7 = row_col_names[mascara_correlacao]
 
 
@@ -176,19 +169,21 @@ corr_values=np.dstack((cols_1_values,cols_2_values))[0]
 cols_values=np.dstack((col_pairs_autocorr_0_7, corr_values))
 
 #Exporta atributos nominais escolhidos
-import clipboard
-exportDf = pd.DataFrame({"Atributo1": col_pairs_autocorr_0_7[:,0], 
-    "Atributo2": col_pairs_autocorr_0_7[:,1], 
-    "Atr1_|r|_SalePrice": np.abs(cols_1_values.values),
-    "Atr2_|r|_SalePrice": np.abs(cols_2_values.values),
-    "|r|": triu[mascara_correlacao][col1_mask]
-    })
-exportDf.to_clipboard(index=False)
-clipboard.copy(exportDf.to_latex(index=False))
+# import clipboard
+# exportDf = pd.DataFrame({"Atributo1": col_pairs_autocorr_0_7[:,0], 
+#     "Atributo2": col_pairs_autocorr_0_7[:,1], 
+#     "Atr1_|r|_SalePrice": np.abs(cols_1_values.values),
+#     "Atr2_|r|_SalePrice": np.abs(cols_2_values.values),
+#     "|r|": triu[mascara_correlacao][col1_mask]
+#     })
+# exportDf.to_clipboard(index=False)
+# clipboard.copy(exportDf.to_latex(index=False))
 
 
 
-#Análise de correlação das numéricas e ordinais
+""" 
+Análise de correlação das numéricas e ordinais
+ """
 corr = dataFrame.corr(method="spearman") #Matriz de correlação
 triu = np.triu(corr, True) #Remove triangulo inferior
 triu = triu[:, :-1] #Remove SalePrice
@@ -238,10 +233,23 @@ exportDf = pd.DataFrame({"Atributo1": col_pairs_autocorr_0_7[:,0],
     "Atr2_|r|_SalePrice": np.abs(cols_2_values.values),
     "|r|": triu[mascara_correlacao][col1_mask]
     })
-exportDf.to_clipboard(index=False)
-clipboard.copy(exportDf.to_latex(index=False))
+# exportDf.to_clipboard(index=False)
+# clipboard.copy(exportDf.to_latex(index=False))
 
-## Seleção com KBest mutual_info
+
+
+""" 
+ Seleção com KBest mutual_info
+"""
+# Transforma nominais em números 
+# (não são afetados por mutual_info)
+dataFrame3=dataFrame
+colsCategory = dataFrame3.columns[(dataFrame3.dtypes=="category")]
+for col in colsCategory:
+    dataFrame3[col].cat.rename_categories(np.arange(1, dataFrame3[col].cat.categories.size+1, dtype='float64'), inplace=True)
+
+dataFrame3.fillna(dataFrame3.median(), inplace=True)
+
 # Algoritmos de escolha de variáveis
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2, f_regression, mutual_info_regression
@@ -269,89 +277,43 @@ for selector in selectors:
 # dataFrame3 = pd.read_csv("dataFrame3")
 
 
-
-## RFE
+""" 
+Seleção Wrapper RFE
+"""
 from sklearn.feature_selection import RFECV
 from sklearn.feature_selection import RFE
-from sklearn.svm import SVR
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import r2_score
-
-#Cria estimador SVM
-estimator = SVR(kernel="linear")
-#Cria seletor com validação cruzada
-selector = RFECV(estimator, min_features_to_select=5, step=1, cv=StratifiedKFold(2),
-              scoring='r2', n_jobs=3)
-#Ajusta o modelo (demora!)
-selector = selector.fit(dataFrame[colsNotSalePrice2], dataFrame["SalePrice"])
-
-#Imprime colunas escolhidas
-for col in colsNotSalePrice2[selector.ranking_==1]:
-    print("%s" % col, end=", ")
-
-
-#Imprime apenas as 21 colunas mais importantes
-selector2 = RFE(estimator, 21, step=1)
-selector2 = selector2.fit(dataFrame[colsNotSalePrice2[selector.support_]], dataFrame["SalePrice"])
-for col in colsNotSalePrice2[selector.support_][selector2.support_]:
-    print("%s" % col, end=", ")
-
-
-# Algoritmos de escolha de variáveis
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2, f_regression, mutual_info_regression
-
-# Seletores (só ficou legal mutual_info_regression)
-selectors = [mutual_info_regression]
-
-for selector in selectors:
-    # Criar modelo de seletor com 10 melhores
-    selectorModel = SelectKBest(selector, k=10)
-    
-    # Ajustar modelo para as variáveis
-    X_kbest = selectorModel.fit_transform(dataFrame3[colsNotSalePrice2], dataFrame3["SalePrice"])
-    
-
-    # Mostrar colunas selecionadas
-    print("Selecionados por", selector.__name__)
-    for i in colsNotSalePrice2[selectorModel.get_support()]:
-        print(i, end=', ')
-    print('\n', end='\n')
-
-#RFE com RandomForestRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn import model_selection
 
 #Cria estimador
 estimator3 = RandomForestRegressor()
 #Cria seletor com validação cruzada 3-fold e 10 repetições
-selector3 = RFECV(estimator3, min_features_to_select=5, step=1, cv=model_selection.RepeatedStratifiedKFold(n_splits=3, n_repeats=10),
+selector3 = RFECV(estimator3, min_features_to_select=1, step=1, cv=model_selection.RepeatedStratifiedKFold(n_splits=3, n_repeats=10),
               scoring='r2', n_jobs=-1)
-selector3 = selector3.fit(dataFrame[colsNotSalePrice2], dataFrame["SalePrice"])
+selector3 = selector3.fit(dataFrame3[colsNotSalePrice2], dataFrame3["SalePrice"])
 for col in colsNotSalePrice2[selector3.ranking_==1]:
     print("%s" % col, end=", ")
     
 
 
 #Seleção por forward SequentialFeatureSelector 
-# from mlxtend import feature_selection
+from mlxtend import feature_selection
 
-# sfs=feature_selection.SequentialFeatureSelector(
-#     estimator,
-#     k_features=21,
-#     forward=True,
-#     scoring="r2",
-#     cv=model_selection.RepeatedStratifiedKFold(3, 10),
-#     n_jobs=-1)
+#SFS para random forests
+sfs3=feature_selection.SequentialFeatureSelector(
+    estimator3,
+    k_features=79,
+    forward=True,
+    scoring="r2",
+    cv=model_selection.RepeatedStratifiedKFold(3, 10),
+    n_jobs=-1)
 
 
-# sfs2 = sfs.fit(dataFrame[colsNotSalePrice2], dataFrame["SalePrice"])
+sfs4 = sfs3.fit(dataFrame3[colsNotSalePrice2], dataFrame3["SalePrice"])
 
 #Gera gráficos com os resultados
-import seaborn as sns
-
-#Fundo branco
-sns.set(style="white")
 
 # #DataFrame com resultados do SVM
 # svmPlot=pd.DataFrame({
@@ -361,14 +323,19 @@ sns.set(style="white")
 
 #DataFrame com resultados do RF
 
-selector3 = pd.read_pickle("./PickledObjects/selector3.pkl")
+# Le dos dados salvos
+# selector3 = pd.read_pickle("./PickledObjects/selector3.pkl")
+
+# Cria dataframe do RFE-rf para plotar
 rfPlot=pd.DataFrame({
     "Nº variáveis": range(1, len(selector3.grid_scores_)+1), 
     "algorithm":"RFE-rf", 
     "Correlação": selector3.grid_scores_})
 
+# Le dos dados salvos
+# sfs4 = pd.read_pickle("./PickledObjects/sfs4.pkl")
 
-sfs4 = pd.read_pickle("./PickledObjects/sfs4.pkl")
+# Popula dataframe do SFS-rf para plotar
 dict4 = sfs4.get_metric_dict()
 rfPlot2=pd.DataFrame(columns=["Nº variáveis", "algorithm", "Correlação"])
 for key,value in dict4.items():
@@ -376,12 +343,14 @@ for key,value in dict4.items():
     "algorithm": "SFS-rf",
     "Correlação":value["avg_score"]
     }
-rfPlot
-
 
 #DataFrame conjunto
 jointDf=rfPlot2.append(rfPlot)
 
+import seaborn as sns
+
+#Fundo branco
+sns.set(style="white")
 
 #Paleta de cores brilhante
 palette=sns.color_palette("bright", 2)
@@ -389,22 +358,16 @@ palette=sns.color_palette("bright", 2)
 #Cria gráfico de linha com amplitude total
 ax1=sns.lineplot(x="Nº variáveis", y="Correlação",
              data=jointDf, hue="algorithm", palette=palette)
-
-#Remove linha referente ao RF (não dá para ver direito)
-# ax1.get_lines()[1].set_color("#FFFFFF00")
 ax1.set(xticks=np.arange(0, 90, 10))
 texto=ax1.legend().get_texts()
 ax1.set_ylabel("Correlação r²")
 texto[0].set_text("Legenda")
 texto[0].set_x(-30)
 
-#Cria segundo eixo Y para ver melhor distribuição do random forests
-ax2 = plt.twinx()
-ax2.set_ylabel("Correlação rf")
-res=sns.lineplot(data=rfPlot,y="Correlação", x="Nº variáveis", color=palette[1], ax=ax2)
+
 
 #Cria seletor para mostrar colunas selecionadas para random forests
-selector4 = RFE(estimator3, 21, step=1)
+selector4 = RFE(estimator3, 16, step=1)
 selector4 = selector4.fit(dataFrame[colsNotSalePrice2[selector3.support_]], dataFrame["SalePrice"])
 for col in colsNotSalePrice2[selector3.support_][selector4.support_]:
     print("%s" % col, end=", ")
