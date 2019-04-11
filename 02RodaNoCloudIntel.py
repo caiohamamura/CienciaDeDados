@@ -38,7 +38,7 @@ from sklearn import model_selection
 #Cria estimador
 estimator3 = RandomForestRegressor()
 #Cria seletor com validação cruzada 3-fold e 10 repetições
-selector3 = RFECV(estimator3, min_features_to_select=1, step=1, cv=model_selection.RepeatedStratifiedKFold(n_splits=4, n_repeats=10),
+selector3 = RFECV(estimator3, step=1, cv=model_selection.RepeatedStratifiedKFold(n_splits=4, n_repeats=10),
               scoring='r2', n_jobs=-1)
 selector3 = selector3.fit(dataFrame3[colsNotSalePrice2], dataFrame3["SalePrice"])
 
