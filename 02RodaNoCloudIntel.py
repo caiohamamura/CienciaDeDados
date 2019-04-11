@@ -31,6 +31,7 @@ dataFrame3 = pd.read_csv("./PickledObjects/dataFrame3.csv")
 # pd.to_pickle(sfs, "./PickledObjects/sfs.pkl")
 # pd.to_pickle(sfs2, "./PickledObjects/sfs2.pkl")
 
+from sklearn.feature_selection import RFECV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn import model_selection
 
