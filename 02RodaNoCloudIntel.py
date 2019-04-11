@@ -54,7 +54,7 @@ from mlxtend import feature_selection
 estimator = RandomForestRegressor()
 sfs3=feature_selection.SequentialFeatureSelector(
     estimator,
-    k_features=80,
+    k_features=79,
     forward=True,
     scoring="r2",
     cv=model_selection.RepeatedStratifiedKFold(3, 10),
