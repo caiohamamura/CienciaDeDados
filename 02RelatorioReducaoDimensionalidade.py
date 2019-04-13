@@ -17,11 +17,9 @@ cols = list(dataFrame.columns)
 colPredict = "SalePrice"
 
 
-##############################
-#Analise de colinearidade
-##############################
-# dataFrame sem colunas nominais binarias
-
+""" 
+Analise de colinearidade
+ """
 # Usa Spearman porque tem variáveis ordinais e não
 # assume normalidade dos dados
 corr = dataFrame.corr(method="spearman") #Matriz de correlação
@@ -63,26 +61,17 @@ cols_values=np.dstack((col_pairs_autocorr_0_7, corr_values))
 #     }).to_latex(index=False))
 
 
-
-# pd.DataFrame({"Atributo1": col_pairs_autocorr_0_7[:,0], 
-#     "Atributo2": col_pairs_autocorr_0_7[:,1], 
-#     "Atr1_|r|_SalePrice": np.abs(cols_1_values.values),
-#     "Atr2_|r|_SalePrice": np.abs(cols_2_values.values),
-#     "|r|": triu[mascara_correlacao][col1_mask]
-#     }).to_clipboard(index=False)
-
-
 # Gráfico de colinearidade
-cmap = sns.color_palette("RdBu_r", 8)
-cmap.append("#000000")
-fig, ax = plt.subplots(figsize=(8,8))
-sns.heatmap(triu, ax=ax, cmap=cmap, center=0,
-            square=True, linewidths=1, 
-            cbar_kws={"shrink": .5, "ticks": [-0.35, 0, 0.35, 0.7]},
-            vmin=-0.4,vmax=0.9,
-            xticklabels=corr.columns[:-1], yticklabels=corr.columns
-            )
-plt.show()
+# cmap = sns.color_palette("RdBu_r", 8)
+# cmap.append("#000000")
+# fig, ax = plt.subplots(figsize=(8,8))
+# sns.heatmap(triu, ax=ax, cmap=cmap, center=0,
+#             square=True, linewidths=1, 
+#             cbar_kws={"shrink": .5, "ticks": [-0.35, 0, 0.35, 0.7]},
+#             vmin=-0.4,vmax=0.9,
+#             xticklabels=corr.columns[:-1], yticklabels=corr.columns
+#             )
+# plt.show()
 
 
 # Pega variavel com menor autocorrelação para remoção
