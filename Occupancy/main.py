@@ -1,3 +1,5 @@
+# Needs pip install h5py
+
 import pandas as pd
 # Print legend outside jupyter
 # %matplotlib
@@ -11,6 +13,7 @@ from keras import backend as K
 from keras import layers
 import keras
 from tensorflow import set_random_seed
+import json
 
 # Create RBF Keras Layer
 class RBFLayer(Layer):
@@ -62,6 +65,7 @@ dataSet.drop("date", 1, inplace=True)
 testSet.drop("date", 1, inplace=True)
 
 # Separate data (X) and response (y) vectors
+dataSet.to_csv("data/normalizedData.csv", index=False)
 X = dataSet.iloc[:,:-1]
 y = dataSet.iloc[:,-1]
 test_X = testSet.iloc[:,:-1]
@@ -190,58 +194,17 @@ for model in models:
             "accuracy":data["val_acc"]
         }), ignore_index=True)
 
+        model_json = model.to_json()
+        with open("data/model%s.json", "w") as json_file:
+            json_file.write(model_json)
+        # serialize weights to HDF5
+        model.save_weights("model.h5")
+        print("Saved model to disk")
+
         iter += 1
         print("")
     ann_index += 1
 
 
 
-pd.to_pickle(trainResult, "trainResult.pkl")
-
-
-
-
-
-
-
-import seaborn as sns
-import matplotlib.pyplot as plt
-# Plot style
-sns.set_style("whitegrid") 
-palette=sns.color_palette("muted")[0:trainResult["network"].unique().size] 
-
-
-# Plot
-plt.figure(dpi=150)
-ax = sns.lineplot(x="epoch", y="loss", hue="network", style="type", data=trainResult, palette=palette)
-
-
-# Plot configs
-params = {"loc":"upper right"}
-leg = ax.legend()
-handles = leg.legendHandles # Remove handler for type
-
-handles[0].set_label("ANN")
-handles[1].set_label("Log.5")
-handles[2].set_label("Log.10")
-handles[3].set_label("Log.15")
-handles[4].set_label("Log.5.moment")
-handles[5].set_label("RBF.5")
-handles[6].set_label("Log.5.5")
-handles[7].set_label("Set")
-ax.legend(handles=handles, **params)
-ax.set_xlabel(ax.get_xlabel().capitalize())
-ax.set_ylabel(ax.get_ylabel().capitalize())
-plt.xticks(pd.np.arange(0, trainResult["epoch"].max()+1, 2))
-plt.xlabel("Epoch")
-plt.ylabel("Log-loss")
-plt.show()
-
-from radarboxplot import radarboxplot
-plt.figure(dpi=150)
-axs=radarboxplot(X, y, X.columns.values, nrows=1, ncols=2)
-plt.show()
-
-
-
-
+trainResult.to_csv("data/trainResult.csv")
