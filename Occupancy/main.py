@@ -13,7 +13,8 @@ from keras import backend as K
 from keras import layers
 import keras
 from tensorflow import set_random_seed
-import json
+from keras.callbacks import ModelCheckpoint
+
 
 # Create RBF Keras Layer
 class RBFLayer(Layer):
@@ -65,7 +66,6 @@ dataSet.drop("date", 1, inplace=True)
 testSet.drop("date", 1, inplace=True)
 
 # Separate data (X) and response (y) vectors
-dataSet.to_csv("data/normalizedData.csv", index=False)
 X = dataSet.iloc[:,:-1]
 y = dataSet.iloc[:,-1]
 test_X = testSet.iloc[:,:-1]
@@ -76,7 +76,15 @@ test_y = testSet.iloc[:,-1]
 minVals = X.min()
 maxVals =  X.max()
 X = ((X-minVals)/(maxVals-minVals))
+dataSet.iloc[:,:-1] = X
 
+X = testSet.iloc[:,:-1]
+minVals = X.min()
+maxVals =  X.max()
+X = ((X-minVals)/(maxVals-minVals))
+testSet.iloc[:,:-1] = X
+dataSet.to_csv("data/normalizedData.csv", index=False)
+dataSet.to_csv("data/normalizedTest.csv", index=False)
 
 
 # MLP Classification logistic
@@ -118,7 +126,7 @@ models = [
     ]),
     #NETWORK V
     keras.models.Sequential([
-        RBFLayer(5, 0.5, input_shape=(5,)),
+        RBFLayer(2, 0.5, input_shape=(5,)),
         layers.Dense(1, activation="sigmoid")
     ]),
     #NETWORK VI
@@ -128,6 +136,13 @@ models = [
         layers.Dense(1, activation="sigmoid")
     ]) 
 ]
+
+def reset_weights(model):
+    session = K.get_session()
+    for layer in model.layers: 
+        if hasattr(layer, 'kernel_initializer'):
+            layer.kernel.initializer.run(session=session)
+
 
 for m in models: 
     m.compile(optimizer=keras.optimizers.SGD(lr=learningRate),
@@ -166,13 +181,21 @@ for model in models:
         X_validation, y_validation = X.iloc[validation_index], y.iloc[validation_index]
         print("Iteration %d/%d" % (iter, kFold*repeatKFold))
         X_train, y_train = X.iloc[train_index], y.iloc[train_index]
+
+
+        # Monitor trainning to save best model
+        filepath="data/model-%d-iter-%d.hdf5" % (ann_index, iter)
+        checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=0, save_best_only=True, mode='max')
+        callbacks_list = [checkpoint]
+        reset_weights(model)
         fitted=model.fit(
             x=X_train,
             y=y_train,
             batch_size=batchSize,
             epochs=50,
-            verbose=1,
-            validation_data=(X_validation, y_validation)
+            verbose=0,
+            validation_data=(X_validation, y_validation),
+            callbacks=callbacks_list
         )
         data=pd.DataFrame(fitted.history)
         
@@ -194,12 +217,10 @@ for model in models:
             "accuracy":data["val_acc"]
         }), ignore_index=True)
 
+        # Save model structure (weights are saved in training process)
         model_json = model.to_json()
-        with open("data/model%s.json", "w") as json_file:
+        with open("data/model-%s-iter%d.json" % (ann_roman, iter), "w") as json_file:
             json_file.write(model_json)
-        # serialize weights to HDF5
-        model.save_weights("model.h5")
-        print("Saved model to disk")
 
         iter += 1
         print("")
@@ -207,4 +228,4 @@ for model in models:
 
 
 
-trainResult.to_csv("data/trainResult.csv")
+trainResult.to_csv("data/trainResult.csv", index=False)
