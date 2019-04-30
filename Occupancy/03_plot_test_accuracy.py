@@ -29,12 +29,12 @@ from sklearn import metrics
 for network in range(6):
     #Get as roman
     ann_roman = {
-        1:"I",
-        2:"II",
-        3:"III",
-        4:"IV",
-        5:"V",
-        6:"VI"
+        1:"Log.5",
+        2:"Log.10",
+        3:"Log.15",
+        4:"Log.5.moment",
+        5:"RBF.5",
+        6:"Log.5.5"
     }[network+1]
     for iter in range(10):
         # Load weights stores in data folder
