@@ -33,13 +33,56 @@ plt.rcParams.update({'font.size': 22})
 plt.figure(figsize=(12, 8))
 plt.plot(range(1, 40), error, color='red', linestyle='dashed', marker='o',
          markerfacecolor='blue', markersize=10)
-plt.title('Taxa de Erro Médio x Valor K')
+plt.title('Taxa de Erro x Valor K')
 plt.xlabel('Valor K')
-plt.ylabel('Erro Médio')
+plt.ylabel('Erro')
 plt.show()
 
+import pandas as pd
+def populateAccDataFrame(splitter):
+    accDf = pd.DataFrame({"k":[],"acc":[]})
+    for j in range(1,40):
+        for train_index, test_index in splitter.split(X):
+            knn = KNeighborsClassifier(n_neighbors=j)
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+            knn.fit(X_train, y_train)
+            pred_i = knn.predict(X_test)
+            accDf.loc[accDf.size] = [j, np.mean(pred_i == y_test)]
+    return accDf
+
+import seaborn as sns
+def plotSns(df, title, **kwargs):
+    sns.set_context("paper", font_scale=1.2)
+    plt.figure(figsize=(8, 5))
+    ax = sns.lineplot(x="k", y="acc", data=df, **kwargs)
+    ax.set_title(title, fontsize=16)
+    ax.set_xlabel("Valor K", fontsize=14)
+    ax.set_ylabel("Acurácia", fontsize=14)
+    plt.savefig("temp.png", dpi=150, bbox_inches='tight')
+    return ax
+
+
+
 #%% Subamostragem aleatória (10)
+from sklearn.model_selection import ShuffleSplit
+from sklearn.model_selection import RepeatedKFold
 acc = []
+
+ss = ShuffleSplit(n_splits=50, test_size=0.20, random_state=847123891)
+repeatedKFold = RepeatedKFold(n_splits=5, n_repeats=10, random_state=847123891)
+loo = LeaveOneOut()
+
+accDf = populateAccDataFrame(ss)
+accDf2 = populateAccDataFrame(repeatedKFold)
+accDf4 = populateAccDataFrame(loo)
+accDf4 = accDf4.groupby("k").mean().reset_index()
+accDf["split"] = "random"
+accDf2["split"] = "repeatedKFold"
+accDf4["split"] = "leaveOneOut"
+accDf3=(accDf.append(accDf2))
+accDf3 = accDf3.append(accDf4)
+ax = plotSns(accDf3, "Acurácia x Valor K", hue="split", style="split")
 
 for i in range(1, 11):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20)
