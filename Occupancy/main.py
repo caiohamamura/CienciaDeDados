@@ -5,18 +5,51 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 import random 
+import numpy as np
+from keras.layers import Layer
+from keras import backend as K
+from keras import layers
+import keras
+from tensorflow import set_random_seed
+
+# Create RBF Keras Layer
+class RBFLayer(Layer):
+    def __init__(self, units, gamma, **kwargs):
+        super(RBFLayer, self).__init__(**kwargs)
+        self.units = units
+        self.gamma = K.cast_to_floatx(gamma)
+
+    def build(self, input_shape):
+        self.mu = self.add_weight(name='mu',
+                                  shape=(int(input_shape[1]), self.units),
+                                  initializer='uniform',
+                                  trainable=True)
+        super(RBFLayer, self).build(input_shape)
+
+    def call(self, inputs):
+        diff = K.expand_dims(inputs) - self.mu
+        l2 = K.sum(K.pow(diff,2), axis=1)
+        res = K.exp(-1 * self.gamma * l2)
+        return res
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], self.units)
+
+
 
 # ANN hyperparams
 inputNumber = 5
-layer1Neurons = 5
 learningRate = 0.3
 momentumFactor = 0.8
 seed=424785
 kFold = 10
 repeatKFold = 1
 batchSize = 200
-maxEpoch = 30
+maxEpoch = 50
 improveTol = maxEpoch
+np.random.seed(seed)
+set_random_seed(seed)
+
 
 # Concatenate all data
 dataSet = pd.read_csv("datatraining.txt")
@@ -46,7 +79,6 @@ X = ((X-minVals)/(maxVals-minVals))
 from sklearn.model_selection import StratifiedKFold
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import log_loss
-import numpy as np
 
 splitter = StratifiedKFold(n_splits=kFold, random_state=seed)
 
@@ -59,75 +91,65 @@ trainResult = pd.DataFrame({
     "accuracy": np.array([], dtype=np.float64)})
 
 
-configs = [{ #NETWORK I
-    "solver":'sgd',
-    "activation":'logistic', 
-    "learning_rate_init":learningRate,
-    "learning_rate":"adaptive",
-    "batch_size":batchSize,
-    "hidden_layer_sizes":(
-        5
-    ), 
-    "random_state":seed,
-    "shuffle":True
-}, { #NETWORK II
-    "solver":'sgd',
-    "activation":'logistic', 
-    "learning_rate_init":learningRate,
-    "learning_rate":"adaptive",
-    "batch_size":batchSize,
-    "hidden_layer_sizes":(
-        20
-    ), 
-    "random_state":seed,
-    "shuffle":True
-}, { #NETWORK III
-    "solver":'sgd',
-    "activation":'logistic', 
-    "learning_rate_init":learningRate,
-    "learning_rate":"adaptive",
-    "batch_size":batchSize,
-    "hidden_layer_sizes":(
-        5,
-        5,
-    ), 
-    "random_state":seed,
-    "shuffle":True
-}, { #NETWORK IV
-    "solver":'sgd',
-    "activation":'tanh', 
-    "learning_rate_init":learningRate,
-    "learning_rate":"adaptive",
-    "batch_size":batchSize,
-    "hidden_layer_sizes":(
-        5
-    ), 
-    "random_state":seed,
-    "shuffle":True
-}, { #NETWORK V
-    "solver":'sgd',
-    "activation":'relu', 
-    "learning_rate_init":learningRate,
-    "learning_rate":"adaptive",
-    "batch_size":batchSize,
-    "hidden_layer_sizes":(
-        5
-    ), 
-    "random_state":seed,
-    "shuffle":True
-}
+models = [
+    #NETWORK I
+    keras.models.Sequential([
+        layers.Dense(5, input_shape=(5,), activation="sigmoid"),
+        layers.Dense(1, activation="sigmoid")
+    ]),
+    #NETWORK II
+    keras.models.Sequential([
+        layers.Dense(10, input_shape=(5,), activation="sigmoid"),
+        layers.Dense(1, activation="sigmoid")
+    ]),
+    #NETWORK III
+    keras.models.Sequential([
+        layers.Dense(15, input_shape=(5,), activation="sigmoid"),
+        layers.Dense(1, activation="sigmoid")
+    ]),
+    #NETWORK IV
+    keras.models.Sequential([
+        layers.Dense(5, input_shape=(5,), activation="sigmoid"),
+        layers.Dense(1, activation="sigmoid")
+    ]),
+    #NETWORK V
+    keras.models.Sequential([
+        RBFLayer(5, 0.5, input_shape=(5,)),
+        layers.Dense(1, activation="sigmoid")
+    ]),
+    #NETWORK VI
+    keras.models.Sequential([
+        layers.Dense(5, input_shape=(5,), activation="sigmoid"),
+        layers.Dense(5, activation="sigmoid"),
+        layers.Dense(1, activation="sigmoid")
+    ]) 
 ]
+
+for m in models: 
+    m.compile(optimizer=keras.optimizers.SGD(lr=learningRate),
+              loss="binary_crossentropy",
+              metrics=["accuracy"])
+
+models[3].compile(
+    optimizer=keras.optimizers.SGD(
+        lr=learningRate, 
+        momentum=momentumFactor
+    ),
+    loss="binary_crossentropy",
+    metrics=["accuracy"])
+
 
 ann_index = 1
 # Test each network configuration
-for config in configs:
+for model in models:
     # Convert to roman numeral
     ann_roman = {
         1:"I",
         2:"II",
         3:"III",
         4:"IV",
-        5:"V"
+        5:"V",
+        6:"VI"
     }[ann_index]
     print()
     print("-"*32)
@@ -137,40 +159,53 @@ for config in configs:
 
     # For each split of KFolding
     for train_index, validation_index in splitter.split(X, y):
-        clf = MLPClassifier(**config)
         X_validation, y_validation = X.iloc[validation_index], y.iloc[validation_index]
-        best = 0
-        bestTrain = 0
-        bestModel = []
-        epoch = 1
-        lastImprove = 0
         print("Iteration %d/%d" % (iter, kFold*repeatKFold))
-        while (True):
-            X_train, y_train = X.iloc[train_index], y.iloc[train_index]
-            currentModel = clf.partial_fit(X_train, y_train, classes=[0,1])
-            if lastImprove == improveTol or epoch > maxEpoch: break   
-            current = clf.score(X_train, y_train)
-            trainLoss = log_loss(clf.predict(X_train), y_train, labels=[0,1])
-            currentCross = clf.score(X_validation, y_validation)
-            valLoss = log_loss(clf.predict(X_validation), y_validation, labels=[0,1])
-            trainResult.loc[trainResult.shape[0]] = [ann_roman, iter, epoch, "train", trainLoss, current]
-            trainResult.loc[trainResult.shape[0]] = [ann_roman, iter, epoch, "validation", valLoss, currentCross]
-            if current > bestTrain:
-                bestTrain = current
-                lastImprove = 0
-            if currentCross > best:
-                best = currentCross
-                bestModel = currentModel
-                lastImprove = 0
-            bar="=" * int(round(32*epoch/maxEpoch)) + " "*int(round((32*(maxEpoch-epoch)/maxEpoch)))
-            print("\r[%s] epoch %d/%d - loss: %.4f, acc: %.4f, val_loss: %.4f, val_acc: %.4f" % (bar, epoch, maxEpoch, trainLoss, current, valLoss, currentCross), end="")
-            epoch += 1
-            lastImprove += 1
-            random.shuffle(train_index)
+        X_train, y_train = X.iloc[train_index], y.iloc[train_index]
+        fitted=model.fit(
+            x=X_train,
+            y=y_train,
+            batch_size=batchSize,
+            epochs=50,
+            verbose=1,
+            validation_data=(X_validation, y_validation)
+        )
+        data=pd.DataFrame(fitted.history)
+        
+        trainResult = trainResult.append(pd.DataFrame({
+            "network": [ann_roman]*data.shape[0],
+            "iter": [iter]*data.shape[0],
+            "epoch": data.index.values+1,
+            "type": ["train"]*data.shape[0],
+            "loss":data["loss"],
+            "accuracy":data["acc"]
+        }), ignore_index=True)
+
+        trainResult = trainResult.append(pd.DataFrame({
+            "network": [ann_roman]*data.shape[0],
+            "iter": [iter]*data.shape[0],
+            "epoch": data.index.values+1,
+            "type": ["validation"]*data.shape[0],
+            "loss":data["val_loss"],
+            "accuracy":data["val_acc"]
+        }), ignore_index=True)
+
         iter += 1
         print("")
     ann_index += 1
 
+
+
+pd.to_pickle(trainResult, "trainResult.pkl")
+
+
+
+
+
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
 # Plot style
 sns.set_style("whitegrid") 
 palette=sns.color_palette("muted")[0:trainResult["network"].unique().size] 
@@ -178,25 +213,35 @@ palette=sns.color_palette("muted")[0:trainResult["network"].unique().size]
 
 # Plot
 plt.figure(dpi=150)
-ax = sns.lineplot(x="epoch", y="accuracy", hue="network", style="type", data=trainResult, palette=palette)
+ax = sns.lineplot(x="epoch", y="loss", hue="network", style="type", data=trainResult, palette=palette)
 
 
 # Plot configs
-params = {"loc":"lower right"}
+params = {"loc":"upper right"}
 leg = ax.legend()
 handles = leg.legendHandles # Remove handler for type
 
 handles[0].set_label("ANN")
-handles[6].set_label("Set")
+handles[1].set_label("Log.5")
+handles[2].set_label("Log.10")
+handles[3].set_label("Log.15")
+handles[4].set_label("Log.5.moment")
+handles[5].set_label("RBF.5")
+handles[6].set_label("Log.5.5")
+handles[7].set_label("Set")
 ax.legend(handles=handles, **params)
 ax.set_xlabel(ax.get_xlabel().capitalize())
 ax.set_ylabel(ax.get_ylabel().capitalize())
 plt.xticks(pd.np.arange(0, trainResult["epoch"].max()+1, 2))
 plt.xlabel("Epoch")
-plt.ylabel("Accuracy")
+plt.ylabel("Log-loss")
 plt.show()
 
 from radarboxplot import radarboxplot
 plt.figure(dpi=150)
 axs=radarboxplot(X, y, X.columns.values, nrows=1, ncols=2)
 plt.show()
+
+
+
+
