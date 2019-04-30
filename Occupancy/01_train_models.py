@@ -8,38 +8,11 @@ import seaborn as sns
 import math
 import random 
 import numpy as np
-from keras.layers import Layer
 from keras import backend as K
 from keras import layers
 import keras
 from tensorflow import set_random_seed
 from keras.callbacks import ModelCheckpoint
-
-
-# Create RBF Keras Layer
-class RBFLayer(Layer):
-    def __init__(self, units, gamma, **kwargs):
-        super(RBFLayer, self).__init__(**kwargs)
-        self.units = units
-        self.gamma = K.cast_to_floatx(gamma)
-
-    def build(self, input_shape):
-        self.mu = self.add_weight(name='mu',
-                                  shape=(int(input_shape[1]), self.units),
-                                  initializer='uniform',
-                                  trainable=True)
-        super(RBFLayer, self).build(input_shape)
-
-    def call(self, inputs):
-        diff = K.expand_dims(inputs) - self.mu
-        l2 = K.sum(K.pow(diff,2), axis=1)
-        res = K.exp(-1 * self.gamma * l2)
-        return res
-
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0], self.units)
-
-
 
 # ANN hyperparams
 inputNumber = 5
@@ -78,11 +51,13 @@ maxVals =  X.max()
 X = ((X-minVals)/(maxVals-minVals))
 dataSet.iloc[:,:-1] = X
 
-X = testSet.iloc[:,:-1]
-minVals = X.min()
-maxVals =  X.max()
-X = ((X-minVals)/(maxVals-minVals))
-testSet.iloc[:,:-1] = X
+# Normalize test set
+minVals = test_X.min()
+maxVals =  test_X.max()
+test_X = ((test_X-minVals)/(maxVals-minVals))
+testSet.iloc[:,:-1] = test_X
+
+# Save normalized sets
 dataSet.to_csv("data/normalizedData.csv", index=False)
 dataSet.to_csv("data/normalizedTest.csv", index=False)
 
@@ -92,8 +67,10 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import log_loss
 
+# Use stratified k-fold
 splitter = StratifiedKFold(n_splits=kFold, random_state=seed)
 
+# Dataset for storing results from training
 trainResult = pd.DataFrame({
     "network":np.array([], dtype=np.object), 
     "iter":np.array([], dtype=np.int), 
@@ -103,52 +80,25 @@ trainResult = pd.DataFrame({
     "accuracy": np.array([], dtype=np.float64)})
 
 
-models = [
-    #NETWORK I
-    keras.models.Sequential([
-        layers.Dense(5, input_shape=(5,), activation="sigmoid"),
-        layers.Dense(1, activation="sigmoid")
-    ]),
-    #NETWORK II
-    keras.models.Sequential([
-        layers.Dense(10, input_shape=(5,), activation="sigmoid"),
-        layers.Dense(1, activation="sigmoid")
-    ]),
-    #NETWORK III
-    keras.models.Sequential([
-        layers.Dense(15, input_shape=(5,), activation="sigmoid"),
-        layers.Dense(1, activation="sigmoid")
-    ]),
-    #NETWORK IV
-    keras.models.Sequential([
-        layers.Dense(5, input_shape=(5,), activation="sigmoid"),
-        layers.Dense(1, activation="sigmoid")
-    ]),
-    #NETWORK V
-    keras.models.Sequential([
-        RBFLayer(2, 0.5, input_shape=(5,)),
-        layers.Dense(1, activation="sigmoid")
-    ]),
-    #NETWORK VI
-    keras.models.Sequential([
-        layers.Dense(5, input_shape=(5,), activation="sigmoid"),
-        layers.Dense(5, activation="sigmoid"),
-        layers.Dense(1, activation="sigmoid")
-    ]) 
-]
+from networks_definition import models
 
+pd.to_pickle(models, "data/models.pkl")
+
+
+# Reset weights for model
 def reset_weights(model):
     session = K.get_session()
     for layer in model.layers: 
         if hasattr(layer, 'kernel_initializer'):
             layer.kernel.initializer.run(session=session)
 
-
+# Compile models
 for m in models: 
     m.compile(optimizer=keras.optimizers.SGD(lr=learningRate),
               loss="binary_crossentropy",
               metrics=["accuracy"])
 
+# Network 4 uses momentum
 models[3].compile(
     optimizer=keras.optimizers.SGD(
         lr=learningRate, 
@@ -187,7 +137,10 @@ for model in models:
         filepath="data/model-%d-iter-%d.hdf5" % (ann_index, iter)
         checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=0, save_best_only=True, mode='max')
         callbacks_list = [checkpoint]
+
         reset_weights(model)
+
+        # Fit model
         fitted=model.fit(
             x=X_train,
             y=y_train,
@@ -197,8 +150,10 @@ for model in models:
             validation_data=(X_validation, y_validation),
             callbacks=callbacks_list
         )
+
+        # Save accuracy loss to trainResult
         data=pd.DataFrame(fitted.history)
-        
+
         trainResult = trainResult.append(pd.DataFrame({
             "network": [ann_roman]*data.shape[0],
             "iter": [iter]*data.shape[0],
@@ -217,15 +172,10 @@ for model in models:
             "accuracy":data["val_acc"]
         }), ignore_index=True)
 
-        # Save model structure (weights are saved in training process)
-        model_json = model.to_json()
-        with open("data/model-%s-iter%d.json" % (ann_roman, iter), "w") as json_file:
-            json_file.write(model_json)
-
         iter += 1
         print("")
     ann_index += 1
 
 
-
+# Save training
 trainResult.to_csv("data/trainResult.csv", index=False)
