@@ -166,7 +166,6 @@ for model in models:
         }), ignore_index=True)
 
         iter += 1
-        print("")
     ann_index += 1
 
 # Save training
